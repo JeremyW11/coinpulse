@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoinPulse - Pro Crypto Terminal</title>
+  <script type="module" crossorigin src="/assets/index-D2b7L1Ei.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-Biz-GylB.css">
+</head>
+<body x-data="cryptoApp()" class="overflow-hidden">
+
+    <div class="flex h-screen w-full">
+        <!-- 側邊欄 -->
+        <aside :class="isSidebarOpen ? 'w-64' : 'w-20'" class="h-full bg-[#080808] border-r border-white/5 flex flex-col transition-all duration-300 z-50 hidden md:flex">
+            <div class="p-8 flex items-center gap-3">
+                <div class="w-10 h-10 min-w-[40px] bg-orange-500 rounded-xl flex items-center justify-center shadow-lg"><i data-lucide="trending-up" class="text-black"></i></div>
+                <span x-show="isSidebarOpen" class="text-xl font-black tracking-tighter text-white">COINPULSE</span>
+            </div>
+            <nav class="flex-1 px-4 space-y-2">
+                <template x-for="item in [{id:'home',icon:'layout-dashboard',key:'market_overview'},{id:'chart',icon:'candlestick-chart',key:'k_line_chart'},{id:'funding',icon:'arrow-right-left',key:'funding_rates'},{id:'liquidation',icon:'zap',key:'liquidations'},{id:'oi',icon:'target',key:'open_interest'}]" :key="item.id">
+                    <button @click="activeTab = item.id" :class="activeTab === item.id ? 'bg-orange-500 text-black font-bold shadow-lg' : 'text-gray-500 hover:bg-white/5'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
+                        <i :data-lucide="item.icon" class="w-5 h-5"></i>
+                        <span x-show="isSidebarOpen" class="text-sm" x-text="t(item.key)"></span>
+                    </button>
+                </template>
+            </nav>
+            <div class="p-4 border-t border-white/5"><button @click="isSidebarOpen = !isSidebarOpen" class="w-full flex justify-center py-2 text-gray-600 hover:text-white transition-colors"><i :data-lucide="isSidebarOpen ? 'x' : 'menu'" class="w-5 h-5"></i></button></div>
+        </aside>
+
+        <main class="flex-1 flex flex-col min-w-0 relative">
+            <!-- Header -->
+            <header class="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-[#080808]/50 backdrop-blur-xl z-40">
+                <div class="flex items-center gap-4">
+                    <h2 class="text-sm font-bold text-gray-400 flex items-center gap-2 uppercase tracking-widest"><i data-lucide="globe" class="text-emerald-500 w-4 h-4"></i> <span x-text="t('online')"></span></h2>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="hidden lg:flex items-center gap-4 text-[10px] font-bold text-gray-500 border-r border-white/10 pr-6 mr-2 uppercase tracking-tighter"><span class="flex items-center gap-1 font-mono text-emerald-500 animate-pulse">● <span x-text="selectedCoin.symbol + 'USDT: $' + selectedCoin.prices"></span></span><span>GAS: 18 GWEI</span></div>
+                    
+                    <!-- 多語言 -->
+                    <div class="relative" @click.away="showLangMenu = false">
+                        <button @click="showLangMenu = !showLangMenu" class="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-white/10 transition-all"><i data-lucide="languages" class="text-orange-500 w-4 h-4"></i> <span x-text="language === 'zh' ? '繁體中文' : 'English'"></span><i data-lucide="chevron-down" class="w-3 h-3"></i></button>
+                        <div x-show="showLangMenu" x-cloak class="absolute top-full right-0 mt-2 w-32 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl z-[100] p-1"><button @click="language='zh'; showLangMenu=false" class="w-full text-left px-3 py-2 rounded-lg text-xs font-bold" :class="language==='zh'?'bg-orange-500 text-black':'text-gray-400 hover:bg-white/5'">繁體中文</button><button @click="language='en'; showLangMenu=false" class="w-full text-left px-3 py-2 rounded-lg text-xs font-bold" :class="language==='en'?'bg-orange-500 text-black':'text-gray-400 hover:bg-white/5'">English</button></div>
+                    </div>
+                    
+                    <div class="flex items-center gap-4 text-gray-500"><i data-lucide="bell" class="w-5 h-5 hover:text-white cursor-pointer"></i><i data-lucide="settings" class="w-5 h-5 hover:text-white cursor-pointer"></i></div>
+                </div>
+            </header>
+
+            <section class="flex-1 overflow-y-auto p-8 relative scrollbar-hide">
+                <div class="max-w-7xl mx-auto space-y-8">
+
+                    <!-- 持倉分析 -->
+                    <template x-if="activeTab === 'oi'">
+                        <div class="space-y-6">
+                            <div class="flex justify-between items-center"><h2 class="text-2xl font-black text-white uppercase tracking-tight" x-text="t('open_interest')"></h2>
+                                <div class="flex gap-3 items-center">
+                                    <div class="relative group" x-data="{ open: false }" @click.away="open = false">
+                                        <button @click="open = !open" class="bg-white/5 border border-white/10 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-white/10 transition-all"><i data-lucide="coins" class="text-orange-500 w-4 h-4"></i> <span x-text="selectedCoin.symbol"></span> <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+                                        <div x-show="open" x-cloak class="absolute top-full right-0 mt-2 w-40 bg-[#121212] border border-white/10 rounded-xl shadow-2xl z-50 p-2"><template x-for="coin in coinsData" :key="coin.symbol"><button @click="selectedCoin=coin; open=false;" class="w-full text-left px-4 py-2 hover:bg-orange-500 hover:text-black rounded-lg text-xs" x-text="coin.symbol"></button></template></div>
+                                    </div>
+                                    <button @click="callAI('OI')" class="bg-orange-500 text-black px-4 py-2 rounded-xl font-bold text-xs"><i data-lucide="sparkles" class="inline w-3.5 h-3.5 mr-1"></i> <span x-text="t('ai_diagnosis')"></span></button>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-[#121212] border border-white/5 p-8 rounded-3xl relative overflow-hidden group shadow-xl"><p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-2" x-text="t('total_oi')"></p><h3 class="text-5xl font-black text-white font-mono tracking-tighter" x-text="'$'+metrics.oiTotal+'B'"></h3></div>
+                                <div class="bg-[#121212] border border-white/5 p-8 rounded-3xl flex flex-col justify-center shadow-xl"><p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-2" x-text="t('oi_mc_ratio')"></p><h3 class="text-4xl font-black text-blue-400 font-mono tracking-tighter">1.82%</h3><div class="mt-4 w-full h-1 bg-white/5 rounded-full overflow-hidden"><div class="bg-blue-500 h-full w-[45%]"></div></div></div>
+                            </div>
+
+                            <div class="bg-[#121212] border border-white/5 rounded-3xl overflow-hidden shadow-2xl relative" x-data="{ showCfg: false }">
+                                <div class="p-6 border-b border-white/5 bg-white/[0.01] flex justify-between items-center"><h3 class="font-bold text-white text-xs uppercase tracking-widest flex items-center gap-2"><i data-lucide="globe" class="text-orange-500 w-4 h-4"></i> Exchange Matrix</h3><button @click="showCfg=!showCfg" class="p-2 rounded-lg border border-white/5 text-gray-400 hover:text-white"><i data-lucide="settings" class="w-4 h-4"></i></button></div>
+                                <div x-show="showCfg" x-cloak @click.away="showCfg=false" class="absolute top-16 right-6 z-50 w-64 bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 shadow-3xl"><div class="grid grid-cols-2 gap-2"><template x-for="ex in exchangesList" :key="ex"><button @click="toggleExchange(ex)" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[10px] font-bold transition-all" :class="visibleExchanges.includes(ex)?'text-orange-500 bg-orange-500/10 border-orange-500/20':'text-gray-600 border-transparent'"><i :data-lucide="visibleExchanges.includes(ex)?'eye':'eye-off'" class="w-3 h-3"></i><span x-text="ex"></span></button></template></div></div>
+                                <div class="overflow-x-auto"><table class="w-full text-left font-mono text-xs border-collapse"><thead><tr class="text-gray-500 uppercase border-b border-white/5 bg-white/[0.02]"><th class="px-8 py-5">Exchange</th><th class="px-8 text-right">Value</th><th class="px-8 text-right">Change</th></tr></thead>
+                                    <tbody class="divide-y divide-white/5"><template x-for="d in exchangeOI.filter(item=>visibleExchanges.includes(item.exchange))" :key="d.exchange"><tr class="hover:bg-white/[0.03] transition-colors"><td class="px-8 py-4 text-gray-300 font-bold" x-text="d.exchange"></td><td class="px-8 py-4 text-right text-white font-black" x-text="'$'+d.oi"></td><td class="px-8 py-4 text-right font-bold" :class="d.isUp?'text-emerald-500':'text-red-500'" x-text="d.change24h"></td></tr></template></tbody>
+                                </table></div>
+                            </div>
+
+                            <div class="bg-[#121212] border border-white/5 rounded-3xl p-8 shadow-2xl overflow-hidden relative">
+                                <div class="flex justify-between items-center mb-10"><h3 class="text-white font-bold flex items-center gap-2 text-lg"><i data-lucide="history" class="text-orange-500 w-5 h-5"></i> <span x-text="selectedCoin.symbol + ' ' + t('history_trend')"></span></h3>
+                                    <div class="flex bg-white/5 p-1 rounded-xl border border-white/10"><button @click="oiChartMode='value'" class="px-4 py-2 rounded-lg text-[10px] font-black uppercase" :class="oiChartMode==='value'?'bg-orange-500 text-black shadow-lg':'text-gray-500'">Value</button><button @click="oiChartMode='change'" class="px-4 py-2 rounded-lg text-[10px] font-black uppercase" :class="oiChartMode==='change'?'bg-orange-500 text-black shadow-lg':'text-gray-500'">Delta</button></div>
+                                </div>
+                                <div class="h-64 w-full relative flex items-center justify-between gap-1 px-4">
+                                    <div class="absolute top-1/2 left-0 w-full h-px bg-white/10 z-0"></div>
+                                    <template x-for="d in oiHistory"><div class="flex-1 h-full flex flex-col items-center group relative z-10">
+                                        <div class="w-full h-1/2 flex items-end justify-center"><div x-show="oiChartMode==='value' || parseFloat(d.change)>=0" class="w-full max-w-[12px] bg-emerald-500/30 group-hover:bg-emerald-500 transition-all rounded-t-sm" :style="'height:'+(oiChartMode==='value' ? (parseFloat(d.value)/25*100) : (Math.abs(parseFloat(d.change))/1.5*100))+'%'"></div></div>
+                                        <div class="w-full h-1/2 flex items-start justify-center"><div x-show="oiChartMode==='change' && parseFloat(d.change)<0" class="w-full max-w-[12px] bg-red-500/30 group-hover:bg-red-500 transition-all rounded-b-sm" :style="'height:'+(Math.abs(parseFloat(d.change))/1.5*100)+'%'"></div></div>
+                                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 mb-4 opacity-0 group-hover:opacity-100 transition-all bg-[#1a1a1a] border border-white/10 p-2 rounded text-[8px] z-50 shadow-2xl" x-text="d.time"></div>
+                                    </div></template>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Chart Tab -->
+                    <template x-if="activeTab === 'chart'">
+                         <div id="tv-container" class="w-full h-[600px] rounded-3xl overflow-hidden border border-white/5"></div>
+                    </template>
+
+                    <!-- 爆倉數據 -->
+                    <template x-if="activeTab === 'liquidation'">
+                        <div class="space-y-6">
+                            <h2 class="text-2xl font-black text-white uppercase tracking-tight" x-text="t('liquidations')"></h2>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="bg-[#121212] border border-white/5 p-8 rounded-3xl shadow-xl"><p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-2" x-text="t('total_liq')"></p><h3 class="text-4xl font-black text-white font-mono">$342.5M</h3></div>
+                                <div class="bg-[#121212] border border-white/5 p-8 rounded-3xl border-l-emerald-500 border-l-4 shadow-xl"><p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-2" x-text="t('longs')"></p><h3 class="text-3xl font-black text-emerald-500 font-mono">$224.1M</h3></div>
+                                <div class="bg-[#121212] border border-white/5 p-8 rounded-3xl border-l-red-500 border-l-4 shadow-xl"><p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-2" x-text="t('shorts')"></p><h3 class="text-3xl font-black text-red-500 font-mono">$118.4M</h3></div>
+                            </div>
+                            <div class="bg-[#121212] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+                                <table class="w-full text-left font-mono text-xs border-collapse"><thead><tr class="text-gray-500 uppercase border-b border-white/5 bg-white/[0.02]"><th class="px-8 py-5">Exchange</th><th class="text-right">Total</th><th class="text-right text-emerald-500">Long</th><th class="text-right text-red-500">Short</th></tr></thead>
+                                    <tbody class="divide-y divide-white/5"><template x-for="d in liqData"><tr class="hover:bg-white/[0.03] transition-colors"><td class="px-8 py-4 text-gray-300 font-bold" x-text="d.exchange"></td><td class="text-right text-white font-black" x-text="'$'+d.total+'M'"></td><td class="text-right text-emerald-500/80" x-text="'$'+d.long+'M'"></td><td class="text-right text-red-500/80" x-text="'$'+d.short+'M'"></td></tr></template></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Home -->
+                    <template x-if="activeTab === 'home'">
+                         <div class="text-center py-20 text-gray-500 uppercase font-bold tracking-widest">Dashboard Overview - Select OI or Chart</div>
+                    </template>
+
+                </div>
+            </section>
+
+            <footer class="h-10 border-t border-white/5 bg-[#080808] px-8 flex items-center justify-between text-[9px] text-gray-600 font-bold uppercase tracking-widest">
+                <div class="flex gap-6"><span><i data-lucide="refresh-ccw" class="inline w-2.5 h-2.5 mr-1 animate-spin-slow"></i> LIVE FEED</span><span>API: 12ms</span></div>
+                <div>© 2026 COINPULSE TERMINAL</div>
+            </footer>
+
+            <!-- AI 彈窗 -->
+            <div x-show="aiModal.show" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in">
+                <div class="bg-[#121212] border border-orange-500/30 w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden">
+                    <div class="p-6 border-b border-white/5 flex justify-between items-center bg-orange-500/5"><div class="flex items-center gap-3 text-orange-400"><i data-lucide="sparkles" class="w-6 h-6"></i><h2 class="font-bold text-xl" x-text="aiModal.title"></h2></div><button @click="aiModal.show = false" class="text-gray-500 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button></div>
+                    <div class="p-8 max-h-[65vh] overflow-y-auto custom-scrollbar text-gray-300 leading-relaxed font-medium"><div x-show="aiModal.loading" class="flex flex-col items-center py-12 gap-6"><div class="w-16 h-16 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin"></div><p class="text-gray-400 animate-pulse uppercase tracking-widest text-[10px] font-black">Consulting Gemini Analysis...</p></div><div x-show="!aiModal.loading" class="space-y-4" x-text="aiModal.content"></div></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
