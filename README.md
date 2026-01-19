@@ -19,3 +19,4 @@ A professional crypto terminal dashboard using real-time WebSocket feeds and agg
 -   Real-time Price & OI updates via WebSocket.
 -   Aggregated data from Binance, OKX, Bybit, etc.
 -   Alpine.js + Tailwind CSS for a reactive, high-performance UI.
+# coinpulse
