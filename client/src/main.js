@@ -63,10 +63,18 @@ Alpine.data('cryptoApp', () => ({
     },
 
     initWebSocket() {
-        // Use relative path for proxy to handle
-        // Protocol: if page is https, use wss. Since we proxy via vite:
+        // Protocol logic
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const host = window.location.host;
+        const host = window.location.hostname === 'localhost' ? window.location.host : 'backend-url-placeholder'; // In real prod, this needs actual backend URL
+
+        // If on GitHub Pages (static), we won't have a backend.
+        // The App automatically switches to "Mock Mode" to demonstrate UI functionality.
+        if (window.location.hostname.includes('github.io')) {
+            console.warn("GitHub Pages detected: Backend unavailable. Switching to Mock Data Mode.");
+            this.startMockDataStream();
+            return;
+        }
+
         this.ws = new WebSocket(`${protocol}//${host}/ws`);
 
         this.ws.onmessage = (event) => {
@@ -80,28 +88,47 @@ Alpine.data('cryptoApp', () => ({
             // Simple reconnect logic
             setTimeout(() => this.initWebSocket(), 3000);
         };
+
+        this.ws.onerror = () => {
+            console.log("WS Error: Fallback to mock");
+            this.startMockDataStream();
+        }
+    },
+
+    startMockDataStream() {
+        // Simulate WebSocket updates for static demo
+        setInterval(() => {
+            const mockData = {
+                price: (93000 + Math.random() * 500 - 250).toFixed(2),
+                matrix: this.exchangesList.map(ex => ({
+                    exchange: ex,
+                    fundingRate: (0.01 + Math.random() * 0.005).toFixed(4),
+                    openInterest: (5 + Math.random()).toFixed(2)
+                }))
+            };
+            this.updateData(mockData);
+        }, 3000);
     },
 
     updateData(data) {
         // Update Price
         if (data.price) {
             this.selectedCoin.prices = parseFloat(data.price);
-            // Update top ticker
         }
 
         // Update Matrix (OI / Funding)
         if (data.matrix) {
             this.fundingMatrix = data.matrix.map(item => ({
-                symbol: 'BTC', // Currently aggregating BTC only in backend demo
-                rates: { '1h': item.fundingRate.toFixed(4) },
-                avg: item.fundingRate.toFixed(4)
+                symbol: 'BTC',
+                rates: { '1h': parseFloat(item.fundingRate).toFixed(4) },
+                avg: parseFloat(item.fundingRate).toFixed(4)
             }));
 
             this.exchangeOI = data.matrix.map(item => ({
                 exchange: item.exchange,
                 oi: item.openInterest,
                 oiRaw: parseFloat(item.openInterest),
-                change24h: (Math.random() * 10 - 5).toFixed(2) + "%", // Still simulated 24h change as we don't store 24h history in memory yet
+                change24h: (Math.random() * 10 - 5).toFixed(2) + "%",
                 isUp: Math.random() > 0.5
             }));
 
