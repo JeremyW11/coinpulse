@@ -1,23 +1,32 @@
-# CoinPulse
+# CoinPulse - Pro Crypto Terminal
 
-A professional crypto terminal dashboard using real-time WebSocket feeds and aggregated exchange data.
+A professional, static cryptocurrency dashboard built with **Vite**, **Alpine.js**, and **Tailwind CSS**.
 
-## Setup
+## 🚀 Live Demo
+[https://jeremyw11.github.io/coinpulse/](https://jeremyw11.github.io/coinpulse/)
+
+## ✨ Features
+-   **Real-time UI**: Simulates a live data feed (Mock Mode) for demonstration.
+-   **Reactive Interface**: Built with Alpine.js for smooth interactions.
+-   **Responsive Design**: Mobile-optimized layout with Tailwind CSS.
+
+## 🛠️ Development
 
 1.  **Install Dependencies**:
     ```bash
-    cd server && npm install
-    cd ../client && npm install
+    npm install
     ```
 
-2.  **Run Development**:
-    -   Backend: `cd server && npm run dev`
-    -   Frontend: `cd client && npm run dev`
+2.  **Start Dev Server**:
+    ```bash
+    npm run dev
+    ```
 
-## Features
+## ☁️ Deployment (GitHub Pages)
 
--   Real-time Price & OI updates via WebSocket.
--   Aggregated data from Binance, OKX, Bybit, etc.
--   Alpine.js + Tailwind CSS for a reactive, high-performance UI.
-# coinpulse
-# coinpulse
+To deploy updates to the live site:
+
+```bash
+npm run deploy
+```
+This command builds the project and pushes the `dist` folder to the `gh-pages` branch.
