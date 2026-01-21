@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CoinPulse - Pro Crypto Terminal</title>
-  <script type="module" crossorigin src="/coinpulse/assets/index-WRwdUX2q.js"></script>
-  <link rel="stylesheet" crossorigin href="/coinpulse/assets/index-BPc94HuD.css">
+  <script type="module" crossorigin src="/coinpulse/assets/index-C0B4yqQ5.js"></script>
+  <link rel="stylesheet" crossorigin href="/coinpulse/assets/index-DOgjZY1O.css">
 </head>
 
 <body x-data="cryptoApp()" class="overflow-hidden">
@@ -258,8 +258,103 @@
 
                     <!-- Home -->
                     <template x-if="activeTab === 'home'">
-                        <div class="text-center py-20 text-gray-500 uppercase font-bold tracking-widest">Dashboard
-                            Overview - Select OI or Chart</div>
+                        <div class="space-y-8">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-2xl font-black text-white uppercase tracking-tight"
+                                    x-text="t('market_overview')"></h2>
+                                <span class="text-xs font-mono text-emerald-500 animate-pulse">● LIVE FEED</span>
+                            </div>
+
+                            <!-- Dashboard Grid -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <!-- Price Card -->
+                                <div
+                                    class="bg-[#121212] border border-white/5 p-6 rounded-3xl relative overflow-hidden group hover:border-orange-500/30 transition-all">
+                                    <div
+                                        class="absolute -right-6 -top-6 w-24 h-24 bg-orange-500/10 rounded-full blur-2xl group-hover:bg-orange-500/20 transition-all">
+                                    </div>
+                                    <p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1"
+                                        x-text="t('price')"></p>
+                                    <h3 class="text-3xl font-black text-white font-mono tracking-tighter"
+                                        x-text="'$'+selectedCoin.prices"></h3>
+                                    <div class="mt-2 text-xs font-bold text-emerald-500 flex items-center gap-1"><i
+                                            data-lucide="trending-up" class="w-3 h-3"></i> +2.4%</div>
+                                </div>
+
+                                <!-- OI Card -->
+                                <div
+                                    class="bg-[#121212] border border-white/5 p-6 rounded-3xl relative overflow-hidden group hover:border-blue-500/30 transition-all">
+                                    <div
+                                        class="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all">
+                                    </div>
+                                    <p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1"
+                                        x-text="t('total_oi')"></p>
+                                    <h3 class="text-3xl font-black text-white font-mono tracking-tighter"
+                                        x-text="'$'+metrics.oiTotal+'B'"></h3>
+                                    <div class="mt-2 text-xs font-bold text-gray-400">Aggregated</div>
+                                </div>
+
+                                <!-- Funding Card -->
+                                <div
+                                    class="bg-[#121212] border border-white/5 p-6 rounded-3xl relative overflow-hidden group hover:border-purple-500/30 transition-all">
+                                    <div
+                                        class="absolute -right-6 -top-6 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all">
+                                    </div>
+                                    <p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1"
+                                        x-text="t('funding_rates') + ' (Avg)'"></p>
+                                    <h3 class="text-3xl font-black text-white font-mono tracking-tighter"
+                                        x-text="fundingMatrix.length > 0 ? (fundingMatrix.reduce((a,b)=>a+parseFloat(b.avg),0)/fundingMatrix.length).toFixed(4)+'%' : '0.0100%'">
+                                    </h3>
+                                    <div class="mt-2 text-xs font-bold text-emerald-500">Bullish Bias</div>
+                                </div>
+
+                                <!-- Liq Card -->
+                                <div
+                                    class="bg-[#121212] border border-white/5 p-6 rounded-3xl relative overflow-hidden group hover:border-red-500/30 transition-all">
+                                    <div
+                                        class="absolute -right-6 -top-6 w-24 h-24 bg-red-500/10 rounded-full blur-2xl group-hover:bg-red-500/20 transition-all">
+                                    </div>
+                                    <p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1"
+                                        x-text="t('total_liq')"></p>
+                                    <h3 class="text-3xl font-black text-white font-mono tracking-tighter"
+                                        x-text="'$'+(liqData.reduce((a,b)=>a+parseFloat(b.total),0)).toFixed(1)+'M'">
+                                    </h3>
+                                    <div class="mt-2 text-xs font-bold text-red-500">Very High</div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Actions -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <button @click="activeTab='chart'"
+                                    class="bg-white/5 hover:bg-white/10 p-4 rounded-2xl flex items-center justify-between group transition-all border border-white/5">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center text-orange-500">
+                                            <i data-lucide="candlestick-chart" class="w-5 h-5"></i></div>
+                                        <div class="text-left">
+                                            <div class="text-sm font-bold text-white uppercase">Technical Analysis</div>
+                                            <div class="text-[10px] text-gray-500">View TradingView Chart</div>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="arrow-right"
+                                        class="text-gray-600 group-hover:text-white transition-colors"></i>
+                                </button>
+                                <button @click="activeTab='oi'"
+                                    class="bg-white/5 hover:bg-white/10 p-4 rounded-2xl flex items-center justify-between group transition-all border border-white/5">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-500">
+                                            <i data-lucide="target" class="w-5 h-5"></i></div>
+                                        <div class="text-left">
+                                            <div class="text-sm font-bold text-white uppercase">Open Interest</div>
+                                            <div class="text-[10px] text-gray-500">Analyze Market Depth</div>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="arrow-right"
+                                        class="text-gray-600 group-hover:text-white transition-colors"></i>
+                                </button>
+                            </div>
+                        </div>
                     </template>
 
                 </div>
